@@ -1,3 +1,4 @@
+import hashlib
 import sys
 import os
 import zlib
@@ -28,6 +29,23 @@ def main():
         
         # Print just the content
         print(content.decode(), end="")
+    elif command == "hash-object":
+        if len(sys.argv) != 4 or sys.argv[2] != "-w":
+            raise RuntimeError("Usage: git hash-object -w <file_path>")
+        
+        file_path = sys.argv[3]
+        with open(file_path, "rb") as f:
+            file_data = f.read()
+
+        header = f"blob {len(file_data)}\x00"
+        content = header.encode() + file_data
+        object_hash = hashlib.sha1(content).hexdigest()
+
+        os.makedirs(f"./.git/objects/{object_hash[:2]}", exist_ok=True)
+        with open(f"./.git/objects/{object_hash[:2]}/{object_hash[2:]}", "wb") as f:
+            f.write(zlib.compress(content))
+        
+        print(object_hash)
     else:
         raise RuntimeError(f"Unknown command #{command}")
 
