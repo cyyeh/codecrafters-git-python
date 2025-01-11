@@ -82,11 +82,11 @@ def main():
                 name=name.decode("utf-8")
             ))
         
-        if "--name-only" in sys.argv:
-            for result in sorted(results, key=lambda x: x.name):
+        
+        for result in sorted(results, key=lambda x: x.name):
+            if "--name-only" in sys.argv:
                 print(result.name)
-        else:
-            for result in sorted(results, key=lambda x: x.name):
+            else:
                 print(f"{result.mode} {result.type} {result.hash} {result.name}")
     else:
         raise RuntimeError(f"Unknown command #{command}")
