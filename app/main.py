@@ -81,8 +81,7 @@ def main():
                 hash=object_hash,
                 name=name.decode("utf-8")
             ))
-        
-        
+
         for result in sorted(results, key=lambda x: x.name):
             if "--name-only" in sys.argv:
                 print(result.name)
