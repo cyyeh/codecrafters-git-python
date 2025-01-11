@@ -2,6 +2,16 @@ import hashlib
 import sys
 import os
 import zlib
+from dataclasses import dataclass
+
+
+@dataclass
+class TreeEntry:
+    mode: str
+    type: str
+    hash: str
+    name: str
+
 
 def main():
     command = sys.argv[1]
@@ -58,12 +68,26 @@ def main():
         with open(git_object_path, "rb") as f:
             data = zlib.decompress(f.read())
 
+        results :list[TreeEntry] = []
         _, binary_data = data.split(b"\x00", maxsplit=1)
         while binary_data:
-            mode, binary_data = binary_data.split(b"\x00", maxsplit=1)
-            _, name = mode.split()
+            mode_and_name, binary_data = binary_data.split(b"\x00", maxsplit=1)
+            mode, name = mode_and_name.split()
             binary_data = binary_data[20:]
-            print(name.decode("utf-8"))
+
+            results.append(TreeEntry(
+                mode=mode.decode("utf-8"),
+                type="tree" if mode.decode("utf-8").startswith("40000") else "blob",
+                hash=object_hash,
+                name=name.decode("utf-8")
+            ))
+        
+        if "--name-only" in sys.argv:
+            for result in sorted(results, key=lambda x: x.name):
+                print(result.name)
+        else:
+            for result in sorted(results, key=lambda x: x.name):
+                print(f"{result.mode} {result.type} {result.hash} {result.name}")
     else:
         raise RuntimeError(f"Unknown command #{command}")
 
