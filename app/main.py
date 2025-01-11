@@ -46,6 +46,24 @@ def main():
             f.write(zlib.compress(content))
         
         print(object_hash)
+    elif command == "ls-tree":
+        if len(sys.argv) < 3:
+            raise RuntimeError("Usage: git ls-tree <object_hash>")
+        elif len(sys.argv) == 4 and sys.argv[2] != "--name-only":
+            raise RuntimeError("Usage: git ls-tree --name-only <object_hash>")
+        
+        object_hash = sys.argv[-1]
+        git_object_path = f"./.git/objects/{object_hash[:2]}/{object_hash[2:]}"
+
+        with open(git_object_path, "rb") as f:
+            data = zlib.decompress(f.read())
+
+        _, binary_data = data.split(b"\x00", maxsplit=1)
+        while binary_data:
+            mode, binary_data = binary_data.split(b"\x00", maxsplit=1)
+            _, name = mode.split()
+            binary_data = binary_data[20:]
+            print(name.decode("utf-8"))
     else:
         raise RuntimeError(f"Unknown command #{command}")
 
